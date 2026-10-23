@@ -86,6 +86,43 @@ app.delete('/api/academic-experiences/:id', async (req, res) => {
   } catch (err) { handleError(res, err); }
 });
 
+//CRUD experiência profissional
+app.get('/api/professional-experiences', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM professional_experiences');
+    res.json(rows);
+  } catch (err) { handleError(res, err); }
+});
+
+app.post('/api/professional-experiences', async (req, res) => {
+  const { profile_id, company, role, description, start_date, end_date } = req.body;
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO professional_experiences (profile_id, company, role, description, start_date, end_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [profile_id, company, role, description, start_date, end_date]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) { handleError(res, err); }
+});
+
+app.put('/api/professional-experiences/:id', async (req, res) => {
+  const { profile_id, company, role, description, start_date, end_date } = req.body;
+  try {
+    const { rows } = await pool.query(
+      'UPDATE professional_experiences SET profile_id = $1, company = $2, role = $3, description = $4, start_date = $5, end_date = $6 WHERE id = $7 RETURNING *',
+      [profile_id, company, role, description, start_date, end_date, req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) { handleError(res, err); }
+});
+
+app.delete('/api/professional-experiences/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM professional_experiences WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Experiência profissional deletada com sucesso' });
+  } catch (err) { handleError(res, err); }
+});
+
 if (process.env.NODE_ENV !== 'production') {
   app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
 }
