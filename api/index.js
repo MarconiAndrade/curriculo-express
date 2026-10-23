@@ -13,7 +13,7 @@ const pool = new Pool({
 });
 
 const handleError = (res, err) => res.status(500).json({ error: err.message });
-
+//CRUD perfil
 app.get('/api/profiles', async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT * FROM profiles');
@@ -47,6 +47,42 @@ app.delete('/api/profiles/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM profiles WHERE id = $1', [req.params.id]);
     res.json({ message: 'Perfil deletado com sucesso' });
+  } catch (err) { handleError(res, err); }
+});
+//CRUD experiência acadêmica
+app.get('/api/academic-experiences', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM academic_experiences');
+    res.json(rows);
+  } catch (err) { handleError(res, err); }
+});
+
+app.post('/api/academic-experiences', async (req, res) => {
+  const { profile_id, institution, course, start_date, end_date } = req.body;
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO academic_experiences (profile_id, institution, course, start_date, end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [profile_id, institution, course, start_date, end_date]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) { handleError(res, err); }
+});
+
+app.put('/api/academic-experiences/:id', async (req, res) => {
+  const { profile_id, institution, course, start_date, end_date } = req.body;
+  try {
+    const { rows } = await pool.query(
+      'UPDATE academic_experiences SET profile_id = $1, institution = $2, course = $3, start_date = $4, end_date = $5 WHERE id = $6 RETURNING *',
+      [profile_id, institution, course, start_date, end_date, req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) { handleError(res, err); }
+});
+
+app.delete('/api/academic-experiences/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM academic_experiences WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Experiência acadêmica deletada com sucesso' });
   } catch (err) { handleError(res, err); }
 });
 
