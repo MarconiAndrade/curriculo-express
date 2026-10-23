@@ -123,6 +123,43 @@ app.delete('/api/professional-experiences/:id', async (req, res) => {
   } catch (err) { handleError(res, err); }
 });
 
+//CRUD projetos
+app.get('/api/projects', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT * FROM projects');
+    res.json(rows);
+  } catch (err) { handleError(res, err); }
+});
+
+app.post('/api/projects', async (req, res) => {
+  const { profile_id, title, description, url } = req.body;
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO projects (profile_id, title, description, url) VALUES ($1, $2, $3, $4) RETURNING *',
+      [profile_id, title, description, url]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) { handleError(res, err); }
+});
+
+app.put('/api/projects/:id', async (req, res) => {
+  const { profile_id, title, description, url } = req.body;
+  try {
+    const { rows } = await pool.query(
+      'UPDATE projects SET profile_id = $1, title = $2, description = $3, url = $4 WHERE id = $5 RETURNING *',
+      [profile_id, title, description, url, req.params.id]
+    );
+    res.json(rows[0]);
+  } catch (err) { handleError(res, err); }
+});
+
+app.delete('/api/projects/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM projects WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Projeto deletado com sucesso' });
+  } catch (err) { handleError(res, err); }
+});
+
 if (process.env.NODE_ENV !== 'production') {
   app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
 }
